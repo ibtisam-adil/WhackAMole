@@ -1,142 +1,127 @@
-#include"galba.h"
-
+#include "galba.h"
+#include "raylib.h"
 #include <vector>
 #include <list>
+#include <cmath>
 
-// #------#
-// | MATH |
-// #------#
-
-//constexpr float PI = 3.1415926535f;
-
-struct Vector2
-{
-	float x;
-	float y;
-};
-
-Vector2 random_direction()
-{
-	float angle = random_float_01() * 2 * PI;
-	return Vector2{ cosf(angle), sinf(angle) };
+Vector2 random_direction() {
+    float angle = random_float_01() * 2 * PI;
+    return Vector2{ cosf(angle), sinf(angle) };
 }
 
-// #----------#
-// | ENTITIES |
-// #----------#
-
-class Entity
-{
+// Entity Class
+class Entity {
 public:
-	Vector2 position = {};
-	bool dead = false;
+    Vector2 position = {};
+    bool dead = false;
 
-	// TODO: Implement, update, render and more if necessary
+    virtual void update() = 0;
+    virtual void render() = 0;
 };
 
 // TODO: Goat class goes here!
-struct Goat : public Entity {
-	int goat_radius = 16;
-	float goat_speed = 2.0f;
-	Color goat_color = white;
-};
+class Goat : public Entity {
+public:
+    Vector2 position;
+    Vector2 direction;
+    Color goat_color;
+    int goat_radius = 16;
+    float goat_speed = random_float_in_range(2.0f, 6.0f);
 
-//Goat goat;
+    Goat(float x = 0, float y = 0, Color color = white)
+        : position{ x, y }, goat_color(color), direction(random_direction()) {
+    }
+
+    void update() override {
+        int window_width = get_window_width();
+        int window_height = get_window_height();
+
+        position.x += direction.x * goat_speed;
+        position.y += direction.y * goat_speed;
+
+        if (position.x >= window_width - goat_radius || position.x <= goat_radius) {
+            direction.x *= -1.0f;
+        }
+        if (position.y >= window_height - goat_radius || position.y <= goat_radius) {
+            direction.y *= -1.0f;
+        }
+    }
+
+    void render() override {
+        draw_circle(round_to_int(position.x), round_to_int(position.y), goat_radius, goat_color);
+    }
+};
 
 // TODO: Bush class goes here!
-struct Bush {
-	/*int goat_radius = 16;
-	float goat_speed = 2.0f;
-	Color goat_color = white;*/
-};
 
-// #-----------#
-// |   LEVEL   |
-// #-----------#
 
-class Level
-{
-	// Implement all functions outside this class.
+class Level {
 private:
-	std::list<Bush>  all_bushes   = {};
-	std::list<Goat>     all_goats = {};
+    std::list<Goat> all_goats;
+    //std::list<Bush> all_bushes;
+    std::vector<Entity*> all_entities;
 
-	//NOTE: Here ^^^ we must use std::list because when you push_back on a vector the memory might move and all the pointers become invalid
-
-	std::vector<Entity*> all_entities = {};
 public:
-
-	// Careful, 'goat' and 'bush' are parameters and will be invalid at the end of the function (don't do &goat, &bush).
-
-	void add_entity(const Goat& goat);
-	// void add_entity(const Bush& bush); // TODO: Implement, add 'bush' to all_bushes and add a pointer to it to all_entities
-
-	void remove_all_dead_entities();
-
-	void init();
-	void update();
-	void render();
+    void add_entity(const Goat& goat);
+    //void add_entity(const Bush& bush);
+    void remove_all_dead_entities();
+    void update();
+    void render();
 };
 
 void Level::add_entity(const Goat& goat) {
-	all_goats.push_back(goat);
-	all_entities.push_back(&all_goats.back());
+    all_goats.push_back(goat);
+    all_entities.push_back(&all_goats.back());
 }
+
+//void Level::add_entity(const Bush& bush) {
+//    all_bushes.push_back(bush);
+//    all_entities.push_back(&all_bushes.back());
+//}
 
 void Level::remove_all_dead_entities() {
-	// We need to get rid of all the pointers that point to dead entities.
-	auto new_last_entity = std::remove_if(all_entities.begin(), all_entities.end(), [](const Entity* e) -> bool { return e->dead; });
-	all_entities.erase(new_last_entity, all_entities.end());
+    auto new_last_entity = std::remove_if(all_entities.begin(), all_entities.end(),
+        [](const Entity* e) -> bool { return e->dead; });
+    all_entities.erase(new_last_entity, all_entities.end());
 
-	// But we also need to get rid of all the actual entities that are dead.
-
-	all_goats.remove_if([](const Goat& g) -> bool { return g.dead; });
-	 //all_bushes.remove_if([](const Bush& b) -> bool { return b.dead; });
+    all_goats.remove_if([](const Goat& g) -> bool { return g.dead; });
+    //all_bushes.remove_if([](const Bush& b) -> bool { return b.dead; });
 }
 
-void Level::init()
-{
-	// TODO: Implement
+void Level::update() {
+    if (is_button_pressed(Button::Right)) {
+        Goat new_goat(static_cast<float>(get_mouse_x()), static_cast<float>(get_mouse_y()));
+        add_entity(new_goat);
+    }
+    
+    /*if (is_button_pressed(Button::Left)) {
+        Bush new_bush(static_cast<float>(get_mouse_x()), static_cast<float>(get_mouse_y()));
+        add_entity(new_bush);
+    }*/
+
+    // Update all entities
+    for (Entity* entity : all_entities) {
+        entity->update();
+    }
+    remove_all_dead_entities();
 }
 
-void Level::update()
-{
-	// TODO: Implement (Hint: handle input here)
-
-	for (Entity* entity : all_entities)
-	{
-		entity->update(); // Hint: Make sure you make this function (and render()) virtual in the base class.
-	}
-
-	remove_all_dead_entities();
+void Level::render() {
+    for (Entity* entity : all_entities) {
+        entity->render();
+    }
 }
 
-void Level::render()
-{
-	// TODO: Implement
+int main() {
+    Level level;
+    initialize(1280, 720, "Window");
 
-	for (Entity* entity : all_entities)
-	{
-		entity->render();
-	}
-}
+    while (is_window_open()) {
+        level.update();
+        clear_window();
+        level.render();
+        display();
+    }
 
-int main(int argc, char** argv)
-{
-	// Don't edit the code inside this function!
-	Level level;
-
-	initialize(1280, 720, "Window");
-
-	level.init();
-
-	while (is_window_open())
-	{
-		level.update();
-
-		clear_window();
-		level.render();
-		display();
-	}
-	return 0;
+    return 0;
 }
