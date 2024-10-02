@@ -19,7 +19,7 @@ public:
     virtual void render() = 0;
 };
 
-// TODO: Goat class goes here!
+// Goat Class
 class Goat : public Entity {
 public:
     Vector2 position;
@@ -52,18 +52,49 @@ public:
     }
 };
 
-// TODO: Bush class goes here!
+// Bush Class
+class Bush : public Entity {
+public:
+    Vector2 position;
+    int starting_bush_size = 20;
+    int target_bush_size = 40;
+    int current_bush_size;
+    int frames_passed = 0;
+    int growth_duration = 600;
+    float size_per_frame;
 
+    Color bush_color = green;
+
+    Bush(float x = 0, float y = 0)
+        : position{ x, y },
+        current_bush_size(starting_bush_size),
+        size_per_frame((target_bush_size - starting_bush_size) / static_cast<float>(growth_duration)) 
+    {}
+
+    void update() override {
+        if (frames_passed < growth_duration) {
+            current_bush_size = starting_bush_size + static_cast<int>(frames_passed * size_per_frame);
+            frames_passed++;
+        }
+        else {
+            current_bush_size = target_bush_size;
+        }
+    }
+
+    void render() override {
+        draw_circle(round_to_int(position.x), round_to_int(position.y), current_bush_size, bush_color);
+    }
+};
 
 class Level {
 private:
     std::list<Goat> all_goats;
-    //std::list<Bush> all_bushes;
+    std::list<Bush> all_bushes;
     std::vector<Entity*> all_entities;
 
 public:
     void add_entity(const Goat& goat);
-    //void add_entity(const Bush& bush);
+    void add_entity(const Bush& bush);
     void remove_all_dead_entities();
     void update();
     void render();
@@ -74,10 +105,10 @@ void Level::add_entity(const Goat& goat) {
     all_entities.push_back(&all_goats.back());
 }
 
-//void Level::add_entity(const Bush& bush) {
-//    all_bushes.push_back(bush);
-//    all_entities.push_back(&all_bushes.back());
-//}
+void Level::add_entity(const Bush& bush) {
+    all_bushes.push_back(bush);
+    all_entities.push_back(&all_bushes.back());
+}
 
 void Level::remove_all_dead_entities() {
     auto new_last_entity = std::remove_if(all_entities.begin(), all_entities.end(),
@@ -85,7 +116,7 @@ void Level::remove_all_dead_entities() {
     all_entities.erase(new_last_entity, all_entities.end());
 
     all_goats.remove_if([](const Goat& g) -> bool { return g.dead; });
-    //all_bushes.remove_if([](const Bush& b) -> bool { return b.dead; });
+    all_bushes.remove_if([](const Bush& b) -> bool { return b.dead; });
 }
 
 void Level::update() {
@@ -93,13 +124,12 @@ void Level::update() {
         Goat new_goat(static_cast<float>(get_mouse_x()), static_cast<float>(get_mouse_y()));
         add_entity(new_goat);
     }
-    
-    /*if (is_button_pressed(Button::Left)) {
+
+    if (is_button_pressed(Button::Left)) {
         Bush new_bush(static_cast<float>(get_mouse_x()), static_cast<float>(get_mouse_y()));
         add_entity(new_bush);
-    }*/
+    }
 
-    // Update all entities
     for (Entity* entity : all_entities) {
         entity->update();
     }
