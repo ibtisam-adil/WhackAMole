@@ -213,18 +213,15 @@ bool Level::is_mouse_over_mole(Vector2 mouse_position, Mole mole) {
 void Level::reset_game() {
     SCORE = 0;
     MOLE_SPAWNED = 0;
+    time_elapsed = 0.0f;
     GAME_OVER = false;
     all_moles.clear();
     all_entities.clear();
 }
 
 void Level::start_game() {
-    SCORE = 0;
-    MOLE_SPAWNED = 0;
-    GAME_OVER = false;
+    reset_game();
     clear_window();
-    all_moles.clear();
-    all_entities.clear();
 }
 
 void set_difficulty(bool& isDifficultySet) {
@@ -257,7 +254,7 @@ int main() {
         clear_window();
 
         if (!GAME_STARTED) {
-            draw_text(500, 350, white, "Press 'S' to Start Game");
+            draw_text(500, 350, WHITE, "Press 'S' to Start Game");
             if (IsKeyPressed(KEY_S)) {
                 GAME_STARTED = true;
                 level.start_game();
@@ -271,15 +268,10 @@ int main() {
             if (isDifficultySet) {
                 if (GAME_OVER) {
                     draw_text(590, 300, ORANGE, "GAME OVER");
-                    draw_text(565, 350, white, "Your Score is: " + std::to_string(SCORE));
-                    draw_text(380, 400, white, "Press 'R' to Restart or 'S' to Start a New Game");
+                    draw_text(565, 350, WHITE, "Your Score is: " + std::to_string(SCORE));
+                    draw_text(480, 400, WHITE, "Press 'S' to Start a New Game");
 
-                    if (IsKeyPressed(KEY_R)) {
-                        level.reset_game();
-                        GAME_STARTED = false;
-                        isDifficultySet = false;
-                    }
-                    else if (IsKeyPressed(KEY_S)) {
+                    if (IsKeyPressed(KEY_S)) {
                         level.reset_game();
                         GAME_STARTED = false;
                         isDifficultySet = false;
@@ -289,6 +281,11 @@ int main() {
                     level.show_time();
                     level.draw_hammer();
                     draw_text(20, 55, WHITE, "Press 'R' key to reset game");
+
+                    if (IsKeyPressed(KEY_R)) {
+                        level.reset_game();
+                    }
+
                     level.update();
                     level.render();
                     level.display_score();
@@ -300,5 +297,6 @@ int main() {
 
     return 0;
 }
+
 
 
