@@ -9,7 +9,7 @@ int SCORE = 0;
 std::string score = "Score: " + std::to_string(SCORE);
 int MOLE_SPAWNED = 0;
 bool GAME_OVER = false;
-bool GAME_STARTED = false; 
+bool GAME_STARTED = false;
 float MOLE_SPAWN_TIME = 2.0f;
 
 // Entity Class
@@ -229,15 +229,15 @@ void set_difficulty(bool& isDifficultySet) {
     draw_text(300, 300, WHITE, "Select Difficulty: Press 1 (Easy), 2 (Medium), or 3 (Hard)");
 
     if (IsKeyPressed(KEY_ONE)) {
-        MOLE_SPAWN_TIME = 2.0f; 
+        MOLE_SPAWN_TIME = 2.0f;
         isDifficultySet = true;
     }
     else if (IsKeyPressed(KEY_TWO)) {
-        MOLE_SPAWN_TIME = 1.5f; 
+        MOLE_SPAWN_TIME = 1.5f;
         isDifficultySet = true;
     }
     else if (IsKeyPressed(KEY_THREE)) {
-        MOLE_SPAWN_TIME = 1.0f; 
+        MOLE_SPAWN_TIME = 1.0f;
         isDifficultySet = true;
     }
 }
