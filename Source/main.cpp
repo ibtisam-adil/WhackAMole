@@ -2,12 +2,14 @@
 #include "raylib.h"
 #include <vector>
 #include <list>
+#include <chrono>
+#include <thread>
 
 int SCORE = 0;
 std::string score = "Score: " + std::to_string(SCORE);
 int MOLE_SPAWNED = 0;
 bool GAME_OVER = false;
-bool GAME_STARTED = false; 
+bool GAME_STARTED = false;
 float MOLE_SPAWN_TIME = 2.0f;
 
 // Entity Class
@@ -211,18 +213,15 @@ bool Level::is_mouse_over_mole(Vector2 mouse_position, Mole mole) {
 void Level::reset_game() {
     SCORE = 0;
     MOLE_SPAWNED = 0;
+    time_elapsed = 0.0f;
     GAME_OVER = false;
     all_moles.clear();
     all_entities.clear();
 }
 
 void Level::start_game() {
-    SCORE = 0;
-    MOLE_SPAWNED = 0;
-    GAME_OVER = false;
+    reset_game();
     clear_window();
-    all_moles.clear();
-    all_entities.clear();
 }
 
 void set_difficulty(bool& isDifficultySet) {
@@ -230,15 +229,15 @@ void set_difficulty(bool& isDifficultySet) {
     draw_text(300, 300, WHITE, "Select Difficulty: Press 1 (Easy), 2 (Medium), or 3 (Hard)");
 
     if (IsKeyPressed(KEY_ONE)) {
-        MOLE_SPAWN_TIME = 2.0f; 
+        MOLE_SPAWN_TIME = 2.0f;
         isDifficultySet = true;
     }
     else if (IsKeyPressed(KEY_TWO)) {
-        MOLE_SPAWN_TIME = 1.5f; 
+        MOLE_SPAWN_TIME = 1.5f;
         isDifficultySet = true;
     }
     else if (IsKeyPressed(KEY_THREE)) {
-        MOLE_SPAWN_TIME = 1.0f; 
+        MOLE_SPAWN_TIME = 1.0f;
         isDifficultySet = true;
     }
 }
@@ -255,7 +254,7 @@ int main() {
         clear_window();
 
         if (!GAME_STARTED) {
-            draw_text(500, 350, white, "Press 'S' to Start Game");
+            draw_text(500, 350, WHITE, "Press 'S' to Start Game");
             if (IsKeyPressed(KEY_S)) {
                 GAME_STARTED = true;
                 level.start_game();
@@ -269,15 +268,10 @@ int main() {
             if (isDifficultySet) {
                 if (GAME_OVER) {
                     draw_text(590, 300, ORANGE, "GAME OVER");
-                    draw_text(565, 350, white, "Your Score is: " + std::to_string(SCORE));
-                    draw_text(380, 400, white, "Press 'R' to Restart or 'S' to Start a New Game");
+                    draw_text(565, 350, WHITE, "Your Score is: " + std::to_string(SCORE));
+                    draw_text(480, 400, WHITE, "Press 'S' to Start a New Game");
 
-                    if (IsKeyPressed(KEY_R)) {
-                        level.reset_game();
-                        GAME_STARTED = false;
-                        isDifficultySet = false;
-                    }
-                    else if (IsKeyPressed(KEY_S)) {
+                    if (IsKeyPressed(KEY_S)) {
                         level.reset_game();
                         GAME_STARTED = false;
                         isDifficultySet = false;
@@ -287,6 +281,11 @@ int main() {
                     level.show_time();
                     level.draw_hammer();
                     draw_text(20, 55, WHITE, "Press 'R' key to reset game");
+
+                    if (IsKeyPressed(KEY_R)) {
+                        level.reset_game();
+                    }
+
                     level.update();
                     level.render();
                     level.display_score();
@@ -298,5 +297,6 @@ int main() {
 
     return 0;
 }
+
 
 
