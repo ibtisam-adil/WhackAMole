@@ -2,6 +2,8 @@
 #include "raylib.h"
 #include <vector>
 #include <list>
+#include <chrono>
+#include <thread>
 
 int SCORE = 0;
 std::string score = "Score: " + std::to_string(SCORE);
